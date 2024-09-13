@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # Входные данные
 p1 = 0.5
-p4 = 8  # 8, 10, 12, 14
+p4 = 14  # 8, 10, 12, 14
 p5 = 0.8
 p6 = 0
 x2_start = -1.9
@@ -65,10 +65,10 @@ stable_points = []
 unstable_points = []
 
 for x2, x1, p2, eigenvalues in zip(x2_values, x1_values, p2_values, eigenvalues_list):
-    if all(eig_real < 0 for eig_real in eigenvalues.real):
-        stable_points.append((p2, x2, x1))
+    if all(eig.real < 0 for eig in eigenvalues):
+        stable_points.append((p2, x2, x1, eigenvalues))
     else:
-        unstable_points.append((p2, x2, x1))
+        unstable_points.append((p2, x2, x1, eigenvalues))
 
 # Запись бифуркаций
 bifurcation_indices = []
@@ -97,26 +97,28 @@ for idx in bifurcation_indices:
 
 # Подготовка точек для отрисовки на графике
 if stable_points:
-    stable_p2, stable_x2, stable_x1 = zip(*stable_points)
+    stable_p2, stable_x2, stable_x1, _ = zip(*stable_points)
 else:
     stable_p2, stable_x2, stable_x1 = [], [], []
 
 if unstable_points:
-    unstable_p2, unstable_x2, unstable_x1 = zip(*unstable_points)
+    unstable_p2, unstable_x2, unstable_x1, _ = zip(*unstable_points)
 else:
     unstable_p2, unstable_x2, unstable_x1 = [], [], []
 
 # Проверка равновесия для устойчивых точек
 print("Проверка равновесия для устойчивых точек:")
-for p2, x2, x1 in stable_points:
+for p2, x2, x1, eigenvalues in stable_points:
     is_equilibrium = check_equilibrium(x2, x1, p2, p1, p4, p5)
-    print(f"p2 = {p2:.{signs}f}, x2 = {x2:.{signs}f}, x1 = {x1:.{signs}f} -> Равновесие: {is_equilibrium}")
+    print(f"p2 = {p2:.{signs}f}, x2 = {x2:.{signs}f}, x1 = {x1:.{signs}f}, собств. знач.: {eigenvalues} "
+          f"-> Равновесие: {is_equilibrium}")
 
 # Проверка равновесия для неустойчивых точек
 print("Проверка равновесия для неустойчивых точек:")
-for p2, x2, x1 in unstable_points:
+for p2, x2, x1, eigenvalues in unstable_points:
     is_equilibrium = check_equilibrium(x2, x1, p2, p1, p4, p5)
-    print(f"p2 = {p2:.{signs}f}, x2 = {x2:.{signs}f}, x1 = {x1:.{signs}f} -> Равновесие: {is_equilibrium}")
+    print(f"p2 = {p2:.{signs}f}, x2 = {x2:.{signs}f}, x1 = {x1:.{signs}f}, собств. знач.: {eigenvalues} "
+          f"-> Равновесие: {is_equilibrium}")
 
 # Рисовка графиков
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
