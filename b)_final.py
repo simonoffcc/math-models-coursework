@@ -4,7 +4,6 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-
 # Входные данные
 p1 = 0.5
 p4 = 8  # 8, 10, 12, 14
@@ -15,7 +14,6 @@ x2_end = 4.5
 step = 0.1
 signs = 3
 
-
 # Выраженные функции
 def calculate_x1(x2, p1, p4, p5, p6):
     x1 = (p1 * x2 + p5 * (x2 - p6)) / (p1 * p4)
@@ -25,6 +23,11 @@ def calculate_p2(x2, x1, p1):
     p2 = (p1 * x1) / ((1 - x1) * exp(x2))
     return p2
 
+# Проверка равновесия
+def check_equilibrium(x2, x1, p2, p1, p4, p5):
+    dx1_dt = p1 * x2 + p5 * (x2 - p6) - p1 * p4 * x1
+    dp2_dt = (p1 * x1) - ((1 - x1) * p2 * exp(x2))
+    return np.isclose(dx1_dt, 0, atol=1e-5) and np.isclose(dp2_dt, 0, atol=1e-5)
 
 # Массивы для записи точек
 x2_values = []
@@ -79,7 +82,7 @@ for i in range(1, len(eigenvalues_list)):
 print("Бифуркация для x2(p2)")
 for idx in bifurcation_indices:
     if idx < len(eigenvalues_list):
-        print(f"Переход в точке номер {idx}:")
+        print(f"Переход в точках номер {idx} - {idx+1}:")
         print(f"p2 = {p2_values[idx-1]:.{signs}f}, x2 = {x2_values[idx-1]:.{signs}f}, собств. знач. = {eigenvalues_list[idx-1]}")
         print(f" p2 = {p2_values[idx]:.{signs}f}, x2 = {x2_values[idx]:.{signs}f}, собств. знач. = {eigenvalues_list[idx]}")
         print("\n")
@@ -87,7 +90,7 @@ for idx in bifurcation_indices:
 print("Бифуркация для x1(p2):")
 for idx in bifurcation_indices:
     if idx < len(eigenvalues_list):
-        print(f"Переход в точке номер {idx}:")
+        print(f"Переход в точках номер {idx} - {idx+1}:")
         print(f"p2 = {p2_values[idx-1]:.{signs}f}, x1 = {x1_values[idx-1]:.{signs}f}, собств. знач. = {eigenvalues_list[idx-1]}")
         print(f"p2 = {p2_values[idx]:.{signs}f}, x1 = {x1_values[idx]:.{signs}f}, собств. знач. = {eigenvalues_list[idx]}")
         print("\n")
@@ -102,6 +105,18 @@ if unstable_points:
     unstable_p2, unstable_x2, unstable_x1 = zip(*unstable_points)
 else:
     unstable_p2, unstable_x2, unstable_x1 = [], [], []
+
+# Проверка равновесия для устойчивых точек
+print("Проверка равновесия для устойчивых точек:")
+for p2, x2, x1 in stable_points:
+    is_equilibrium = check_equilibrium(x2, x1, p2, p1, p4, p5)
+    print(f"p2 = {p2:.{signs}f}, x2 = {x2:.{signs}f}, x1 = {x1:.{signs}f} -> Равновесие: {is_equilibrium}")
+
+# Проверка равновесия для неустойчивых точек
+print("Проверка равновесия для неустойчивых точек:")
+for p2, x2, x1 in unstable_points:
+    is_equilibrium = check_equilibrium(x2, x1, p2, p1, p4, p5)
+    print(f"p2 = {p2:.{signs}f}, x2 = {x2:.{signs}f}, x1 = {x1:.{signs}f} -> Равновесие: {is_equilibrium}")
 
 # Рисовка графиков
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
