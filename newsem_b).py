@@ -1,12 +1,12 @@
 import numpy as np
-from math import e, exp
+from math import exp
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 p1 = 0.5
 # p3 = 20
-p4 = 14  # 8, 10, 12, 14
+p4 = 8  # 8, 10, 12, 14
 p5 = 0.8
 p6 = 0
 x2_start = -1.9
@@ -48,10 +48,6 @@ for x2 in np.arange(x2_start, x2_end + step, step):
     eigenvalues = np.linalg.eigvals(A)
     eigenvalues_list.append(eigenvalues)
 
-    if len(eigenvalues_list) > 1:
-        previous_eigenvalues = eigenvalues_list[-2]
-        if any((e.real < 0) != (pe.real < 0) for e, pe in zip(eigenvalues, previous_eigenvalues)):
-            bifurcation_points.append((p2, x2, x1))
 
 stable_points = []
 unstable_points = []
@@ -72,10 +68,6 @@ if unstable_points:
 else:
     unstable_p2, unstable_x2, unstable_x1 = [], [], []
 
-# if bifurcation_points:
-#     bifurcation_p2, bifurcation_x2, bifurcation_x1 = zip(*bifurcation_points)
-# else:
-#     bifurcation_p2, bifurcation_x2, bifurcation_x1 = [], [], []
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
@@ -83,7 +75,6 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 ax1.plot(p2_values, x2_values, label='x2(p2)', color='blue')
 ax1.scatter(stable_p2, stable_x2, color='green', label='Устойчивые точки', s=50)
 ax1.scatter(unstable_p2, unstable_x2, color='red', label='Неустойчивые точки', s=50)
-# ax1.scatter(bifurcation_p2, bifurcation_x2, color='orange', label='Точки бифуркации', s=100, marker='x')
 ax1.set_xlabel('p2', fontsize=14)
 ax1.set_ylabel('x2', fontsize=14)
 ax1.set_title('x2(p2)', fontsize=16)
@@ -94,7 +85,6 @@ ax1.grid(True, linestyle='--', alpha=0.7)
 ax2.plot(p2_values, x1_values, label='x1(p2)', color='purple')
 ax2.scatter(stable_p2, stable_x1, color='green', label='Устойчивые точки', s=50)
 ax2.scatter(unstable_p2, unstable_x1, color='red', label='Неустойчивые точки', s=50)
-# ax2.scatter(bifurcation_p2, bifurcation_x1, color='orange', label='Точки бифуркации', s=100, marker='x')
 ax2.set_xlabel('p2', fontsize=14)
 ax2.set_ylabel('x1', fontsize=14)
 ax2.set_title('x1(p2)', fontsize=16)

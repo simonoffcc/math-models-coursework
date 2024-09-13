@@ -14,7 +14,6 @@ x2_end = 4.5
 step = 0.1
 signs = 3
 
-
 def calculate_x1(x2, p1, p4, p5, p6):
     x1 = (p1 * x2 + p5 * (x2 - p6)) / (p1 * p4)
     return x1
@@ -23,12 +22,10 @@ def calculate_p2(x2, x1, p1, p3):
     p2 = (p1 * x1) / ((1 - x1) * exp(x2 / (1 + x2 / p3)))
     return p2
 
-
 x2_values = []
 x1_values = []
 p2_values = []
 eigenvalues_list = []
-bifurcation_points = []
 
 for x2 in np.arange(x2_start, x2_end + step, step):
     x2_values.append(x2)
@@ -50,22 +47,50 @@ for x2 in np.arange(x2_start, x2_end + step, step):
     eigenvalues = np.linalg.eigvals(A)
     eigenvalues_list.append(eigenvalues)
 
+# Identify stable and unstable points
 stable_points = []
 unstable_points = []
 
 for x2, x1, p2, eigenvalues in zip(x2_values, x1_values, p2_values, eigenvalues_list):
-    if all(eig_real < 0 for eig_real in eigenvalues.real):
-        stable_points.append((p2, x2, x1))
+    if all(eig.real < 0 for eig in eigenvalues):
+        stable_points.append((p2, x2, x1, eigenvalues))
     else:
-        unstable_points.append((p2, x2, x1))
+        unstable_points.append((p2, x2, x1, eigenvalues))
 
+# Detect bifurcation points
+bifurcation_indices = []
+for i in range(1, len(eigenvalues_list)):
+    prev_stable = all(eig.real < 0 for eig in eigenvalues_list[i-1])
+    curr_stable = all(eig.real < 0 for eig in eigenvalues_list[i])
+    if prev_stable != curr_stable:
+        bifurcation_indices.append(i)
+
+# Print transitions for x2 vs p2 graph
+print("Transitions between stable and unstable points (x2 vs p2):")
+for idx in bifurcation_indices:
+    if idx < len(eigenvalues_list):
+        print(f"Transition at index {idx}:")
+        print(f"Before: p2 = {p2_values[idx-1]:.{signs}f}, x2 = {x2_values[idx-1]:.{signs}f}, Eigenvalues = {eigenvalues_list[idx-1]}")
+        print(f"After: p2 = {p2_values[idx]:.{signs}f}, x2 = {x2_values[idx]:.{signs}f}, Eigenvalues = {eigenvalues_list[idx]}")
+        print("\n")
+
+# Print transitions for x1 vs p2 graph
+print("Transitions between stable and unstable points (x1 vs p2):")
+for idx in bifurcation_indices:
+    if idx < len(eigenvalues_list):
+        print(f"Transition at index {idx}:")
+        print(f"Before: p2 = {p2_values[idx-1]:.{signs}f}, x1 = {x1_values[idx-1]:.{signs}f}, Eigenvalues = {eigenvalues_list[idx-1]}")
+        print(f"After: p2 = {p2_values[idx]:.{signs}f}, x1 = {x1_values[idx]:.{signs}f}, Eigenvalues = {eigenvalues_list[idx]}")
+        print("\n")
+
+# Extract stable and unstable points
 if stable_points:
-    stable_p2, stable_x2, stable_x1 = zip(*stable_points)
+    stable_p2, stable_x2, stable_x1, _ = zip(*stable_points)
 else:
     stable_p2, stable_x2, stable_x1 = [], [], []
 
 if unstable_points:
-    unstable_p2, unstable_x2, unstable_x1 = zip(*unstable_points)
+    unstable_p2, unstable_x2, unstable_x1, _ = zip(*unstable_points)
 else:
     unstable_p2, unstable_x2, unstable_x1 = [], [], []
 

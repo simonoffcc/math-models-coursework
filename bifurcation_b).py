@@ -1,14 +1,13 @@
 import numpy as np
-from math import e, exp
+from math import exp
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-p1 = 1
-p3 = 20
-p4 = 10
-p5 = 0.6
-p6 = -5
+p1 = 0.5
+p4 = 8  # 8, 10, 12, 14
+p5 = 0.8
+p6 = 0
 x2_start = -1.9
 x2_end = 4.5
 step = 0.1
@@ -19,8 +18,8 @@ def calculate_x1(x2, p1, p4, p5, p6):
     x1 = (p1 * x2 + p5 * (x2 - p6)) / (p1 * p4)
     return x1
 
-def calculate_p2(x2, x1, p1, p3):
-    p2 = (p1 * x1) / ((1 - x1) * exp(x2 / (1 + x2 / p3)))
+def calculate_p2(x2, x1, p1):
+    p2 = (p1 * x1) / ((1 - x1) * exp(x2))
     return p2
 
 
@@ -36,19 +35,22 @@ for x2 in np.arange(x2_start, x2_end + step, step):
     x1 = calculate_x1(x2, p1, p4, p5, p6)
     x1_values.append(x1)
 
-    p2 = calculate_p2(x2, x1, p1, p3)
+    p2 = calculate_p2(x2, x1, p1)
     p2_values.append(p2)
 
-    left_top = -p1 - p2 * e ** (x2 / (1 + x2 / p3))
-    left_btm = -p2 * p4 * e ** (x2 / (1 + x2 / p3))
-    right_top = p2 * (1 - x1) * (e ** ((p3 * x2)/(p3 + x2)) * p3**2) / (p3 + x2)**2
-    right_btm = -p1 + p2 * p4 * (1 - x1) * (e ** ((p3 * x2)/(p3 + x2)) * p3**2) / (p3 + x2)**2 - p5
+    left_top = -p1 - p2 * exp(x2)
+    left_btm = -p2 * p4 * exp(x2)
+    right_top = p2 * (1 - x1) * exp(x2)
+    right_btm = -p1 + p2 * p4 * (1 - x1) * exp(x2) - p5
     A = np.array([[left_top, right_top],
-                  [left_btm, right_btm],
-                  ])
-
+                  [left_btm, right_btm]])
     eigenvalues = np.linalg.eigvals(A)
     eigenvalues_list.append(eigenvalues)
+
+    if len(eigenvalues_list) > 1:
+        previous_eigenvalues = eigenvalues_list[-2]
+        if any((e.real < 0) != (pe.real < 0) for e, pe in zip(eigenvalues, previous_eigenvalues)):
+            bifurcation_points.append((p2, x2, x1))
 
 stable_points = []
 unstable_points = []
@@ -68,6 +70,30 @@ if unstable_points:
     unstable_p2, unstable_x2, unstable_x1 = zip(*unstable_points)
 else:
     unstable_p2, unstable_x2, unstable_x1 = [], [], []
+
+if bifurcation_points:
+    bifurcation_p2, bifurcation_x2, bifurcation_x1 = zip(*bifurcation_points)
+else:
+    bifurcation_p2, bifurcation_x2, bifurcation_x1 = [], [], []
+
+
+# Print transitions for x2 vs p2 graph
+print("Transitions between stable and unstable points (x2 vs p2):")
+for i in range(len(bifurcation_p2)):
+    if i > 0:
+        print(f"Transition {i}:")
+        print(f"Before: p2 = {bifurcation_p2[i-1]:.{signs}f}, x2 = {bifurcation_x2[i-1]:.{signs}f}, Eigenvalues = {eigenvalues_list[i-1]}")
+        print(f"After: p2 = {bifurcation_p2[i]:.{signs}f}, x2 = {bifurcation_x2[i]:.{signs}f}, Eigenvalues = {eigenvalues_list[i]}")
+        print("\n")
+
+# Print transitions for x1 vs p2 graph
+print("Transitions between stable and unstable points (x1 vs p2):")
+for i in range(len(bifurcation_p2)):
+    if i > 0:
+        print(f"Transition {i}:")
+        print(f"Before: p2 = {bifurcation_p2[i-1]:.{signs}f}, x1 = {bifurcation_x1[i-1]:.{signs}f}, Eigenvalues = {eigenvalues_list[i-1]}")
+        print(f"After: p2 = {bifurcation_p2[i]:.{signs}f}, x1 = {bifurcation_x1[i]:.{signs}f}, Eigenvalues = {eigenvalues_list[i]}")
+        print("\n")
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
